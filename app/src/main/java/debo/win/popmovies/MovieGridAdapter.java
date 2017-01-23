@@ -1,13 +1,11 @@
 package debo.win.popmovies;
 
-import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.content.Intent;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,47 +15,27 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
-class MovieGridAdapter extends ArrayAdapter<MovieDetails> {
+
+class MovieGridAdapter extends RecyclerView.Adapter<MovieGridAdapter.ViewHolder> {
 
     private List<MovieDetails> movieListEntries;
 
-    MovieGridAdapter(Context context, int resource, List<MovieDetails> objects) {
-        super(context, resource, objects);
+    MovieGridAdapter(List<MovieDetails> objects) {
         movieListEntries = objects;
     }
 
     @Override
-    public int getCount() {
-        return movieListEntries.size();
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.movie_list_item, parent, false);
+        return new ViewHolder(v);
     }
 
-    /*private view holder class*/
-    private class ViewHolder {
-        ImageView moviePoster;
-        TextView movieTitle;
-        TextView movieScore;
-        TextView moviePopularity;
-    }
-
-    @NonNull
     @Override
-    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-        ViewHolder holder;
-        MovieDetails movieItem = getItem(position);
-
-        LayoutInflater mInflater = (LayoutInflater) this.getContext()
-                .getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.movie_list_item, parent, false);
-            holder = new ViewHolder();
-            holder.movieTitle = (TextView) convertView.findViewById(R.id.movie_list_item_title);
-            holder.movieScore = (TextView) convertView.findViewById(R.id.movie_list_item_score);
-            holder.moviePopularity = (TextView) convertView.findViewById(R.id.movie_list_item_popularity);
-            holder.moviePoster = (ImageView) convertView.findViewById(R.id.movie_list_item_poster);
-            convertView.setTag(holder);
-        } else
-            holder = (ViewHolder) convertView.getTag();
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        MovieDetails movieItem = movieListEntries.get(position);
 
         Pattern p = Pattern.compile("^(\\d+)-");
         Matcher m = p.matcher(movieItem.getReleaseDate());
@@ -72,15 +50,48 @@ class MovieGridAdapter extends ArrayAdapter<MovieDetails> {
         if(m.find())
             popularity = m.group(1);
         holder.moviePopularity.setText(String.format("\u2764 %s", popularity));
-        Picasso.with(this.getContext()).load(movieItem.getPosterURL()).into(holder.moviePoster);
-
-        return convertView;
-
+        Context context = holder.moviePoster.getContext();
+        Picasso.with(context).load(MovieDetails.getPosterUrlPrefix() + movieItem.getPosterURL())
+                .placeholder(R.drawable.icon).into(holder.moviePoster);
     }
 
-    @Nullable
+    void clear(){
+        movieListEntries.clear();
+    }
+
+    void addAll(List<MovieDetails> items){
+        movieListEntries.addAll(items);
+    }
+
     @Override
-    public MovieDetails getItem(int position) {
-        return movieListEntries.get(position);
+    public int getItemCount() {
+        return movieListEntries.size();
+    }
+
+    class ViewHolder extends RecyclerView.ViewHolder{
+        @BindView(R.id.movie_list_item_poster)
+        ImageView moviePoster;
+        @BindView(R.id.movie_list_item_title)
+        TextView movieTitle;
+        @BindView(R.id.movie_list_item_score)
+        TextView movieScore;
+        @BindView(R.id.movie_list_item_popularity)
+        TextView moviePopularity;
+
+        ViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Context context = view.getContext();
+                    int position = getAdapterPosition();
+                    MovieDetails movieDetails = movieListEntries.get(position);
+                    Intent intent = new Intent(context, DetailActivity.class)
+                            .putExtra("movieDetails", movieDetails);
+                    context.startActivity(intent);
+                }
+            });
+        }
     }
 }

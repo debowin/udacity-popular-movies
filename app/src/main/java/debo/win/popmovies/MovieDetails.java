@@ -4,8 +4,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 class MovieDetails implements Parcelable{
-    private String posterURL;
-    private String movieID;
+    private static String POSTER_URL_PREFIX = "http://image.tmdb.org/t/p/w342";
+    private String poster_path;
+    private String id;
     private String adult;
     private String overview;
     private String release_date;
@@ -20,8 +21,8 @@ class MovieDetails implements Parcelable{
 
 
     private MovieDetails(Parcel in) {
-        posterURL = in.readString();
-        movieID = in.readString();
+        poster_path = in.readString();
+        id = in.readString();
         adult = in.readString();
         overview = in.readString();
         release_date = in.readString();
@@ -50,12 +51,16 @@ class MovieDetails implements Parcelable{
         }
     };
 
+    public static String getPosterUrlPrefix() {
+        return POSTER_URL_PREFIX;
+    }
+
     String getPosterURL() {
-        return posterURL;
+        return poster_path;
     }
 
     void setPosterURL(String posterURL) {
-        this.posterURL = posterURL;
+        this.poster_path = posterURL;
     }
 
     String getPopularity() {
@@ -67,11 +72,11 @@ class MovieDetails implements Parcelable{
     }
 
     String getMovieID() {
-        return movieID;
+        return id;
     }
 
     void setMovieID(String movieID) {
-        this.movieID = movieID;
+        this.id = movieID;
     }
 
     String getTitle() {
@@ -129,8 +134,8 @@ class MovieDetails implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(posterURL);
-        parcel.writeString(movieID);
+        parcel.writeString(poster_path);
+        parcel.writeString(id);
         parcel.writeString(adult);
         parcel.writeString(overview);
         parcel.writeString(release_date);
